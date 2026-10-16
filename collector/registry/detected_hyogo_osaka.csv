@@ -1,0 +1,86 @@
+# detect_cms.py で自動生成。method を手で直した場合は note に理由を書く
+code,pref,name,population,method,base_url,feed,note
+271004,大阪府,大阪市,2751862,unknown,https://www.city.osaka.lg.jp/,,https://www.city.osaka.lg.jp/event/index.html https://www.city.osaka.lg.jp/event/news/curr.html
+271403,大阪府,堺市,827277,unknown,https://www.city.sakai.lg.jp/,,https://www.city.sakai.lg.jp/kanko/index.html https://www.city.sakai.lg.jp/kanko/rekishi/sei/samazama_torikumi/r08/r08kofunsummit.html https://www.city.sakai.lg.jp/kanko/kanko/kohosakaievent/osakasakaiballon_kinencampaign.html https://www.city.sakai.lg.jp/kanko/bunka/art_kanrenjigyo/tyanoyu_machidukuri/sakaiothanoyu.html https://www.city.sakai.lg.jp/shievent/calendar/list_calendar.html#1
+272027,大阪府,岸和田市,188015,unknown,https://www.city.kishiwada.lg.jp/,,https://www.city.kishiwada.lg.jp/calendar/
+272035,大阪府,豊中市,399263,list_calendar,https://www.city.toyonaka.osaka.jp/,event/calendar/list_calendar.html,
+272043,大阪府,池田市,104148,calendar_json,https://www.city.ikeda.osaka.jp/,calendar.json,
+272051,大阪府,吹田市,384953,event_js,https://www.city.suita.osaka.jp/,event.js,
+272060,大阪府,泉大津市,74175,calendar_json,https://www.city.izumiotsu.lg.jp/,calendar.json,
+272078,大阪府,高槻市,347496,unknown,https://www.city.takatsuki.osaka.jp/,,https://www.city.takatsuki.osaka.jp/calendar/ https://www.city.takatsuki.osaka.jp/event/kominkan/180930.html https://www.city.takatsuki.osaka.jp/event/kominkan/180671.html
+272086,大阪府,貝塚市,84356,calendar_json,https://www.city.kaizuka.lg.jp/,calendar.json,
+272094,大阪府,守口市,141849,calendar_json,https://www.city.moriguchi.osaka.jp/,calendar.json,
+272108,大阪府,枚方市,396694,unknown,https://www.city.hirakata.osaka.jp/,,"https://www.city.hirakata.osaka.jp/event2d/event_list.php?ev=2&amp;ss=1&amp;ca=6,4,1&amp;page=1 https://www.city.hirakata.osaka.jp/event2d/event_list.php?ev=2&amp;mon=202609&amp;ss=1&amp;ca=6,4,1&amp;page=1 https://www.city.hirakata.osaka.jp/event2d/event_list.php?ev=2&amp;mon=202611&amp;ss=1&amp;ca=6,4,1&amp;page=1"
+272116,大阪府,茨木市,283835,calendar_json,https://www.city.ibaraki.osaka.jp/,calendar.json,
+272124,大阪府,八尾市,264913,event_js,https://www.city.yao.osaka.jp/,event.js,
+272132,大阪府,泉佐野市,99328,calendar_json,https://www.city.izumisano.lg.jp/,calendar.json,
+272141,大阪府,富田林市,108735,unknown,https://www.city.tondabayashi.lg.jp/,,
+272159,大阪府,寝屋川市,227997,calendar_json,https://www.city.neyagawa.osaka.jp/,calendar.json,
+272167,大阪府,河内長野市,100415,unknown,https://www.city.kawachinagano.lg.jp/,,https://www.city.kawachinagano.lg.jp/calendar/
+272175,大阪府,松原市,117186,unknown,https://www.city.matsubara.lg.jp/,,https://www.city.matsubara.lg.jp/sports_bunka_kanko/ https://www.city.matsubara.lg.jp/sports_bunka_kanko/sports/ https://www.city.matsubara.lg.jp/sports_bunka_kanko/bunka/ https://www.city.matsubara.lg.jp/sports_bunka_kanko/kanko_citypr/ https://www.city.matsubara.lg.jp/news/event/
+272183,大阪府,大東市,118812,unknown,https://www.city.daito.lg.jp/,,https://www.city.daito.lg.jp/calendar/
+272191,大阪府,和泉市,184299,calendar_json,https://www.city.osaka-izumi.lg.jp/,calendar.json,
+272205,大阪府,箕面市,136976,unknown,https://www.city.minoh.lg.jp/,,http://minohkankou.net/ http://www.minoh.net/event.php https://www.city.minoh.lg.jp/eigyou/kankou.html#movie
+272213,大阪府,柏原市,67757,unknown,https://www.city.kashiwara.osaka.jp/,,
+272221,大阪府,羽曳野市,108370,calendar_json,https://www.city.habikino.lg.jp/,calendar.json,
+272230,大阪府,門真市,118319,unknown,https://www.city.kadoma.osaka.jp/,,https://www.city.kadoma.osaka.jp/event/40703.html https://www.city.kadoma.osaka.jp/event/40792.html https://www.city.kadoma.osaka.jp/event/40957.html https://www.city.kadoma.osaka.jp/event/40926.html https://www.city.kadoma.osaka.jp/event/40629.html
+272248,大阪府,摂津市,86168,unknown,https://www.city.settsu.osaka.jp/,,https://www.city.settsu.osaka.jp/#tab-event https://www.city.settsu.osaka.jp/eventichiran/14388.html https://www.city.settsu.osaka.jp/eventichiran/30586.html https://www.city.settsu.osaka.jp/eventichiran/30575.html https://www.city.settsu.osaka.jp/eventichiran/30430.html
+272256,大阪府,高石市,55910,unknown,https://www.city.takaishi.lg.jp/,,http://www.city.takaishi.lg.jp/event/4062.html https://www.city.takaishi.lg.jp/event/3665.html https://www.city.takaishi.lg.jp/event/4915.html https://www.city.takaishi.lg.jp/event/5477.html https://www.city.takaishi.lg.jp/event/3946.html
+272264,大阪府,藤井寺市,63338,calendar_json,https://www.city.fujiidera.lg.jp/,calendar.json,
+272272,大阪府,東大阪市,490819,unknown,https://www.city.higashiosaka.lg.jp/,,https://www.city.higashiosaka.lg.jp/event2/event_calendar.php?ev=2 https://www.ikoramu.com/html/event.php?mode=show&seq=678 https://www.ikoramu.com/html/event.php?mode=show&seq=677 https://www.ikoramu.com/html/event.php?mode=show&seq=675 https://www.ikoramu.com/html/event.php?mode=show&seq=674
+272281,大阪府,泉南市,59634,calendar_json,https://www.city.sennan.lg.jp/,calendar.json,
+272299,大阪府,四條畷市,55094,unknown,https://www.city.shijonawate.lg.jp/,,https://www.city.shijonawate.lg.jp/calendar/
+272302,大阪府,交野市,76002,unknown,https://www.city.katano.osaka.jp/,,https://www.city.katano.osaka.jp/navi/kanko/ https://www.city.katano.osaka.jp/categories/lifeevent/ninshin/ https://www.city.katano.osaka.jp/categories/lifeevent/kosodate/ https://www.city.katano.osaka.jp/categories/lifeevent/gakko/ https://www.city.katano.osaka.jp/categories/lifeevent/hikkoshi/
+272311,大阪府,大阪狭山市,58593,calendar_json,https://www.city.osakasayama.osaka.jp/,calendar.json,
+272329,大阪府,阪南市,49794,calendar_json,https://www.city.hannan.lg.jp/,calendar.json,
+273015,大阪府,島本町,31292,unknown,https://www.town.shimamoto.lg.jp/,,https://www.town.shimamoto.lg.jp/calendar https://www.town.shimamoto.lg.jp/site/kankou/
+273210,大阪府,豊能町,18011,unknown,https://www.town.toyono.osaka.jp/,,https://www.town.toyono.osaka.jp/kankou-bunka-sports/ https://www.town.toyono.osaka.jp/kankou-bunka-sports/bunka-geijutsu/kouminkan/page001661.html https://www.town.toyono.osaka.jp/kankou-bunka-sports/kankou/event/page008387.html https://www.town.toyono.osaka.jp/kankou-bunka-sports/kankou/event/page008331.html https://www.town.toyono.osaka.jp/jubel-hall/event/page008293.html
+273228,大阪府,能勢町,8942,calendar_json,https://www.town.nose.osaka.jp/,calendar.json,
+273414,大阪府,忠岡町,16628,calendar_json,https://www.town.tadaoka.osaka.jp/,calendar.json,
+273619,大阪府,熊取町,43570,calendar_json,https://www.town.kumatori.lg.jp/,calendar.json,
+273627,大阪府,田尻町,8273,calendar_json,https://www.town.tajiri.osaka.jp/,calendar.json,
+273660,大阪府,岬町,14629,calendar_json,https://www.town.misaki.osaka.jp/,calendar.json,
+273813,大阪府,太子町,13092,calendar_json,https://www.town.taishi.osaka.jp/,calendar.json,
+273821,大阪府,河南町,15497,calendar_json,https://www.town.kanan.osaka.jp/,calendar.json,
+273830,大阪府,千早赤阪村,4803,calendar_json,https://www.vill.chihayaakasaka.osaka.jp/,calendar.json,
+281000,兵庫県,神戸市,1521707,unknown,https://www.city.kobe.lg.jp/,,https://event.city.kobe.lg.jp/
+282014,兵庫県,姫路市,527596,unknown,https://www.city.himeji.lg.jp/,,https://www.city.himeji.lg.jp/kanko/index.html https://www.city.himeji.lg.jp/kanko/category/1-7-0-0-0-0-0-0-0-0.html https://www.city.himeji.lg.jp/kanko/category/1-5-0-0-0-0-0-0-0-0.html https://www.city.himeji.lg.jp/kanko/category/1-18-0-0-0-0-0-0-0-0.html https://www.city.himeji.lg.jp/kanko/category/1-12-0-0-0-0-0-0-0-0.html
+282022,兵庫県,尼崎市,455555,event_js,https://www.city.amagasaki.hyogo.jp/,event_data.js,
+282031,兵庫県,明石市,299699,unknown,https://www.city.akashi.lg.jp/,,https://www.city.akashi.lg.jp/kanko-bunka/index.html
+282049,兵庫県,西宮市,487010,list_calendar,https://www.nishi.or.jp/,event/calendar/list_calendar.html,
+282057,兵庫県,洲本市,41056,unknown,https://www.city.sumoto.lg.jp/,,https://www.city.sumoto.lg.jp/calendar/
+282065,兵庫県,芦屋市,94116,unknown,https://www.city.ashiya.lg.jp/,,https://www.city.ashiya.lg.jp/cgi-bin/event_cal/cal_month.cgi
+282073,兵庫県,伊丹市,198522,calendar_json,https://www.city.itami.lg.jp/,calendar.json,
+282081,兵庫県,相生市,28350,unknown,https://www.city.aioi.lg.jp/,,https://www.city.aioi.lg.jp/calendar/
+282090,兵庫県,豊岡市,77005,unknown,https://www.city.toyooka.lg.jp/,,https://www.city.toyooka.lg.jp/kanko/index.html
+282103,兵庫県,加古川市,260595,calendar_json,https://www.city.kakogawa.lg.jp/,calendar.json,
+282120,兵庫県,赤穂市,45473,unknown,https://www.city.ako.lg.jp/,,https://www.city.ako.lg.jp/sangyoshinko/kanko/nihonisan/nihoisanten2027.html https://www.city.ako.lg.jp/kanko/index.html https://www.city.ako.lg.jp/kanko/kanko/index.html https://www.city.ako.lg.jp/kanko/kankogyosei/index.html https://www.city.ako.lg.jp/kanko/kyoiku/index.html
+282138,兵庫県,西脇市,38453,calendar_json,https://www.city.nishiwaki.lg.jp/,calendar.json,
+282146,兵庫県,宝塚市,224055,event_js,https://www.city.takarazuka.hyogo.jp/,city_event.js,
+282154,兵庫県,三木市,74255,unknown,https://www.city.miki.lg.jp/,,https://www.city.miki.lg.jp/calendar https://www.city.miki.lg.jp/calendar/
+282162,兵庫県,高砂市,87220,unknown,https://www.city.takasago.lg.jp/,,https://www.city.takasago.lg.jp/miryokuhasshin_kankosite/index.html https://www.city.takasago.lg.jp/miryokuhasshin_kankosite/iju_teiju/index.html https://www.city.takasago.lg.jp/gyoseisite/bunka_sports_kanko/index.html
+282171,兵庫県,川西市,152076,event_js,https://www.city.kawanishi.hyogo.jp/,event_data.js,
+282189,兵庫県,小野市,47316,calendar_json,https://www.city.ono.hyogo.jp/,calendar.json,
+282197,兵庫県,三田市,109243,calendar_json,https://www.city.sanda.lg.jp/,calendar.json,
+282201,兵庫県,加西市,42290,unknown,https://www.city.kasai.hyogo.jp/,,https://www.city.kasai.hyogo.jp/calendar/
+282219,兵庫県,丹波篠山市,40708,unknown,https://www.city.tambasasayama.lg.jp/,,https://www.city.tambasasayama.lg.jp/kanko_bunka/kanko/index.html
+282227,兵庫県,養父市,21813,calendar_json,https://www.city.yabu.hyogo.jp/,calendar.json,
+282235,兵庫県,丹波市,60824,unknown,https://www.city.tamba.lg.jp/,,https://www.city.tamba.lg.jp/kanko_bunka/index.html https://www.city.tamba.lg.jp/event/13475.html https://www.city.tamba.lg.jp/event/13474.html https://www.city.tamba.lg.jp/event/13693.html https://www.city.tamba.lg.jp/event/13695.html
+282243,兵庫県,南あわじ市,43914,unknown,https://www.city.minamiawaji.hyogo.jp/,,https://www.city.minamiawaji.hyogo.jp/calendar/ https://www.city.minamiawaji.hyogo.jp/soshiki/cna/lin-eventia.html
+282251,兵庫県,朝来市,28802,unknown,https://www.city.asago.hyogo.jp/,,https://www.city.asago.hyogo.jp/calendar/index.php?dsp=1&amp;y=2026&amp;m=9&amp;d=1 https://www.city.asago.hyogo.jp/calendar/ https://www.city.asago.hyogo.jp/calendar/index.php?dsp=1&amp;y=2026&amp;m=11&amp;d=1 https://www.city.asago.hyogo.jp/calendar/index.php?dsp=1&amp;y=2026&amp;m=10&amp;d=1#search_calendar_form https://www.city.asago.hyogo.jp/calendar/index.php?dsp=1&amp;y=2026&amp;m=10&amp;d=2#search_calendar_form
+282260,兵庫県,淡路市,41127,unknown,https://www.city.awaji.lg.jp/,,https://www.city.awaji.lg.jp/calendar/ https://www.city.awaji.lg.jp/calendar/index.php?dsp=1&amp;y=2026&amp;m=9&amp;d=1 https://www.city.awaji.lg.jp/calendar/index.php?dsp=1&amp;y=2026&amp;m=11&amp;d=1 https://www.city.awaji.lg.jp/calendar/index.php?dsp=1&amp;y=2026&amp;m=10&amp;d=1#search_calendar_form https://www.city.awaji.lg.jp/calendar/index.php?dsp=1&amp;y=2026&amp;m=10&amp;d=2#search_calendar_form
+282278,兵庫県,宍粟市,34116,calendar_json,https://www.city.shiso.lg.jp/,calendar.json,
+282286,兵庫県,加東市,40728,calendar_json,https://www.city.kato.lg.jp/,calendar.json,
+282294,兵庫県,たつの市,73952,calendar_json,https://www.city.tatsuno.lg.jp/,calendar.json,
+283011,兵庫県,猪名川町,29571,calendar_json,https://www.town.inagawa.lg.jp/,calendar.json,
+283657,兵庫県,多可町,19095,unknown,https://www.town.taka.lg.jp/,,
+283819,兵庫県,稲美町,30148,unknown,https://www.town.hyogo-inami.lg.jp/,,https://www.town.hyogo-inami.lg.jp/event/curr_1.html https://www.town.hyogo-inami.lg.jp/event/prev_1.html https://www.town.hyogo-inami.lg.jp/event/next_1.html https://www.town.hyogo-inami.lg.jp/event/now.html
+283827,兵庫県,播磨町,33822,unknown,https://www.town.harima.lg.jp/,,https://www.town.harima.lg.jp/kanko/index.html https://www.town.harima.lg.jp/cgi-bin/event_cal_multi/calendar.cgi https://www.town.harima.lg.jp/kikaku/lifeevent/index.html
+284424,兵庫県,市川町,11023,unknown,https://www.town.ichikawa.lg.jp/,,https://www.town.ichikawa.lg.jp/Local/styles/view/calendar.css?ver=11
+284432,兵庫県,福崎町,19143,unknown,https://www.town.fukusaki.hyogo.jp/,,http://www.town.fukusaki.hyogo.jp/event2/0curr_1.html https://fukusakikankou.jp/
+284467,兵庫県,神河町,10557,unknown,https://www.town.kamikawa.hyogo.jp/,,https://www.town.kamikawa.hyogo.jp/event/now.html
+284645,兵庫県,太子町,33321,unknown,https://www.town.hyogo-taishi.lg.jp/,,https://www.town.hyogo-taishi.lg.jp/event/7315.html https://www.town.hyogo-taishi.lg.jp/event/7430.html https://www.town.hyogo-taishi.lg.jp/event/7360.html https://www.town.hyogo-taishi.lg.jp/event/7041.html https://www.town.hyogo-taishi.lg.jp/event/7029.html
+284815,兵庫県,上郡町,13835,unknown,https://www.town.kamigori.hyogo.jp/,,https://www.town.kamigori.hyogo.jp/kanko_bunka/index.html https://www.town.kamigori.hyogo.jp/event_bosyulist.html https://www.town.kamigori.hyogo.jp/kanko_bunka/kankojoho/index.html https://www.kamigori-kanko.com/ https://www.town.kamigori.hyogo.jp/#tab-event
+285013,兵庫県,佐用町,15508,unknown,https://www.town.sayo.lg.jp/,,
+285854,兵庫県,香美町,15704,calendar_json,https://www.town.mikata-kami.lg.jp/,calendar.json,
+285862,兵庫県,新温泉町,13213,unknown,https://www.town.shinonsen.hyogo.jp/,,https://www.town.shinonsen.hyogo.jp/kankou.php https://www.town.shinonsen.hyogo.jp/page/rss/kankou.php https://www.town.shinonsen.hyogo.jp/page/index.php?mode=topics_list&dev=kankou https://www.town.shinonsen.hyogo.jp/disaster_prevention_info/broadcast_content/

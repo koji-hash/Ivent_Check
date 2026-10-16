@@ -150,6 +150,32 @@ struct ivent_checkTests {
         #expect(hits.allSatisfy { $0.endAt > generated })
     }
 
+    @Test func tiledFeedLoadsOnlyNearbyTiles() async throws {
+        let now = Date.now
+        let near = makeEvent(start: now, end: now.addingTimeInterval(3600), lat: 34.811, lon: 135.340)
+        let far = makeEvent(start: now, end: now.addingTimeInterval(3600), lat: 35.68, lon: 139.76)
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        let base = FileManager.default.temporaryDirectory.appendingPathComponent("feed-\(UUID())", isDirectory: true)
+        try FileManager.default.createDirectory(at: base.appendingPathComponent("tiles"), withIntermediateDirectories: true)
+        // 収集バッチの tile_key(34.811, 135.340) = "139_541"、東京 = "142_559"
+        try encoder.encode([near]).write(to: base.appendingPathComponent("tiles/139_541.json"))
+        try encoder.encode([far]).write(to: base.appendingPathComponent("tiles/142_559.json"))
+        let index = FeedEventRepository.FeedIndex(
+            version: 1, generatedAt: now, tileSize: 0.25, sources: [],
+            tiles: ["139_541": .init(count: 1, hash: "a"), "142_559": .init(count: 1, hash: "b")])
+        try encoder.encode(index).write(to: base.appendingPathComponent("index.json"))
+
+        let repository = FeedEventRepository(remoteURL: base, bundledURL: nil,
+                                             cacheURL: base.appendingPathComponent("cache/feed.json"), now: { now })
+        let query = EventSearchQuery(center: CLLocationCoordinate2D(latitude: 34.81, longitude: 135.34), radiusKm: 10,
+                                     interval: DateInterval(start: now, duration: 86_400))
+        #expect(FeedEventRepository.tileKeys(for: query, tileSize: 0.25).contains("139_541"))
+        let events = try await repository.searchEvents(query)
+        #expect(events.map(\.id) == [near.id])
+        #expect(repository.generatedAt != nil)
+    }
+
     @Test func iconFallsBackToCategory() {
         var event = makeEvent(start: .now, end: .now.addingTimeInterval(60))
         #expect(event.icon == .festival)

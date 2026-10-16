@@ -24,7 +24,7 @@ struct FilterView: View {
                 } header: {
                     Text("距離（km以内）").textCase(nil)
                 } footer: {
-                    Text("現在地（または指定エリア）からの距離です。対象エリア：宝塚市・川西市・伊丹市・尼崎市・西宮市・三田市・猪名川町・神戸市・豊中市・吹田市・池田市")
+                    Text("現在地（または指定エリア）からの距離です。掲載している市区町村は「設定 > データ出典一覧」で確認できます。")
                 }
                 Section {
                     CategoryGrid(selection: $draft.categories)

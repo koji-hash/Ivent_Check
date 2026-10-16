@@ -1,42 +1,93 @@
 name: collect-events
 
+# 毎朝、全国のイベントを地方ごとに並列で収集し、まとめて GitHub Pages に公開する。
+# 結果はリポジトリにコミットしない（Pages に直接公開）。取得済みページ・位置のキャッシュは Actions のキャッシュに保存する。
 on:
   schedule:
-    - cron: "0 20 * * *" # 毎朝 5:00 (JST)
+    - cron: "0 19 * * *" # 毎朝 4:00 (JST)
   workflow_dispatch: {}
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 concurrency:
   group: collect-events
   cancel-in-progress: false
 
 jobs:
-  collect:
+  test:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest discover collector
 
+  collect:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false # 1つの地方が失敗しても他は公開する
+      matrix:
+        region: [hokkaido_tohoku, kanto, chubu, kinki, chugoku_shikoku, kyushu_okinawa]
+    steps:
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Test parsers
-        run: python -m unittest discover collector
+      - name: Restore caches
+        uses: actions/cache@v4
+        with:
+          path: .cache/${{ matrix.region }}
+          key: collector-${{ matrix.region }}-${{ github.run_id }}
+          restore-keys: collector-${{ matrix.region }}-
 
-      - name: Collect events
-        run: python collector/collect.py --output docs/events.json
-
-      - name: Commit updated feed
+      - name: Collect
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/events.json collector/geocode_cache.json collector/cache
-          if git diff --cached --quiet; then
-            echo "変更なし"
-          else
-            git commit -m "Update events.json ($(TZ=Asia/Tokyo date +%Y-%m-%d))"
-            git push
-          fi
+          python collector/collect.py --region ${{ matrix.region }} \
+            --cache-dir .cache/${{ matrix.region }}/pages \
+            --geocode-cache .cache/${{ matrix.region }}/geocode.json \
+            --output parts/${{ matrix.region }}.json
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: part-${{ matrix.region }}
+          path: parts/${{ matrix.region }}.json
+          if-no-files-found: warn
+          retention-days: 3
+
+  publish:
+    needs: collect
+    if: always() && needs.collect.result != 'cancelled'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: part-*
+          path: parts
+          merge-multiple: true
+
+      - name: Merge regions and write tiles
+        run: |
+          python collector/collect.py --merge parts/*.json --output site/events.json --tiles site/feed
+          touch site/.nojekyll
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@v4

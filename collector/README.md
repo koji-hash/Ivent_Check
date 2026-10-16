@@ -32,15 +32,30 @@ python3 -m unittest discover collector
 ## 公開手順（GitHub Pages）
 
 1. GitHub に**公開**リポジトリを作り、このフォルダを push する（Actions の無料枠が実質無制限になる）
-2. リポジトリの Settings → Pages → Source を「Deploy from a branch」、Branch を `main` / `/docs` にする
-3. Actions タブで `collect-events` を一度手動実行（Run workflow）して動作を確認する
-4. `https://<ユーザー名>.github.io/<リポジトリ名>/events.json` が開けたら、
-   アプリの `ivent_check-Info.plist` の `EventFeedURL` にその URL を設定する
+2. リポジトリの Settings → Pages → Source を **GitHub Actions** にする
+3. Actions タブで `collect-events` を一度手動実行（Run workflow）する。
+   初回は取得済みページのキャッシュが無い地方があるため時間がかかる（各地方の上限は5時間）
+4. `https://<ユーザー名>.github.io/<リポジトリ名>/feed/index.json` が開けたら、
+   アプリの `ivent_check-Info.plist` の `EventFeedURL` に `https://<ユーザー名>.github.io/<リポジトリ名>/feed/` を設定する
 
-以後は毎朝 5:00（JST）に自動更新されます。
+以後は毎朝 4:00（JST）に、6つの地方（北海道・東北／関東／中部／近畿／中国・四国／九州・沖縄）を並列で収集し、
+まとめて Pages に公開する。結果はリポジトリにコミットせず、キャッシュは Actions のキャッシュに保存する。
 
-アプリには公開前・通信できないとき用に `ivent_check/Resources/events.json` を同梱しています。
-リリース前には `cp docs/events.json ivent_check/Resources/events.json` で最新にしてください。
+### 配信形式
+
+- `feed/index.json` … 作成日時・出典一覧・地域ごとのファイルの一覧（件数と内容のハッシュ）
+- `feed/tiles/{行}_{列}.json` … 緯度経度 0.25° 四方ごとのイベント（行 = floor(緯度/0.25)、列 = floor(経度/0.25)）
+- `events.json` … 全件（確認用）
+
+アプリは index.json を見て、検索範囲に重なり、ハッシュが変わったファイルだけを取得する。
+`EventFeedURL` が未設定のときは同梱の `ivent_check/Resources/events.json` を使う。
+
+## 市区町村の追加（登録表）
+
+1. `registry/municipalities_*.csv` に市区町村（コード・都道府県・名前・公式サイト・人口）を用意する
+   （全国分は Wikidata から作成済み: `registry/municipalities_japan.csv`）
+2. `python3 collector/detect_cms.py <一覧CSV> --output collector/registry/detected_<名前>.csv` で方式を自動判定する
+3. `collect.py` は `registry/detected_*.csv` をすべて読み、対応済みの方式の市区町村を自動で収集対象にする
 
 ## ソースを増やすとき
 

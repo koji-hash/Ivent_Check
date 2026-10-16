@@ -7,6 +7,7 @@ from __future__ import annotations
 import datetime as dt
 import json
 import re
+import threading
 import time
 import unicodedata
 import urllib.parse
@@ -17,21 +18,30 @@ from html import unescape
 JST = dt.timezone(dt.timedelta(hours=9))
 USER_AGENT = "ivent-check-collector/1.0 (daily low-frequency event collector; contact via repository)"
 
-# 同じホストへ連続アクセスしないための待ち時間（秒）
+# 同じホストへ連続アクセスしないための待ち時間（秒）。並列実行でもホストごとに守る
 _REQUEST_INTERVAL = 1.0
 _last_request: dict[str, float] = {}
+_host_locks: dict[str, threading.Lock] = {}
+_locks_guard = threading.Lock()
 
 
 def fetch(url: str, timeout: int = 30) -> str:
     host = urllib.parse.urlparse(url).netloc
-    wait = _REQUEST_INTERVAL - (time.monotonic() - _last_request.get(host, 0))
-    if wait > 0:
-        time.sleep(wait)
+    with _locks_guard:
+        lock = _host_locks.setdefault(host, threading.Lock())
+    with lock:
+        wait = _REQUEST_INTERVAL - (time.monotonic() - _last_request.get(host, 0))
+        if wait > 0:
+            time.sleep(wait)
+        _last_request[host] = time.monotonic()
+        return _fetch_now(url, timeout)
+
+
+def _fetch_now(url: str, timeout: int) -> str:
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept-Language": "ja"})
     with urllib.request.urlopen(request, timeout=timeout) as response:
         body = response.read()
         charset = response.headers.get_content_charset() or "utf-8"
-    _last_request[host] = time.monotonic()
     return body.decode(charset, errors="replace")
 
 

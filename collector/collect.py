@@ -8,6 +8,9 @@ AI は使わない。1日1回の実行を想定（GitHub Actions）。
 from __future__ import annotations
 
 import argparse
+import csv
+import hashlib
+import math
 import datetime as dt
 import json
 import re
@@ -26,36 +29,6 @@ from sources.list_calendar import ListCalendar  # noqa: E402
 from sources.smart_calendar import SmartCalendar  # noqa: E402
 from sources.takarazuka_kominkan import TakarazukaKominkan  # noqa: E402
 
-HYOGO, OSAKA = "兵庫県", "大阪府"
-# 宝塚市の会場コード → venues.json の既知施設
-TAKARAZUKA_PLACES = {
-    "1": "宝塚市役所", "3": "フレミラ宝塚", "5": "スポーツセンター", "6": "ベガ・ホール",
-    "7": "ソリオホール", "8": "宝塚文化創造館", "9": "中央公民館", "10": "男女共同参画センター",
-}
-
-
-def build_sources(resolver: VenueResolver, cache_dir: Path) -> tuple[list, list[PageCache]]:
-    """収集対象。宝塚市を中心に、おおむね30km圏の市町"""
-    kobe_cache = PageCache(cache_dir / "kobe_pages.json")
-    list_cache = PageCache(cache_dir / "list_calendar_pages.json")
-    detail_cache = PageCache(cache_dir / "detail_pages.json")
-    sources = [
-        CityEventJs(CityEventJsConfig(City("宝塚市", HYOGO), "https://www.city.takarazuka.hyogo.jp/", "city_event.js",
-                                      place_defaults=TAKARAZUKA_PLACES, skip_outer=True), resolver),
-        TakarazukaKominkan(resolver),
-        CityEventJs(CityEventJsConfig(City("川西市", HYOGO), "https://www.city.kawanishi.hyogo.jp/", "event_data.js"), resolver, detail_cache),
-        CityEventJs(CityEventJsConfig(City("尼崎市", HYOGO), "https://www.city.amagasaki.hyogo.jp/", "event_data.js"), resolver, detail_cache),
-        CityEventJs(CityEventJsConfig(City("吹田市", OSAKA), "https://www.city.suita.osaka.jp/", "event.js"), resolver, detail_cache),
-        SmartCalendar(City("伊丹市", HYOGO), "https://www.city.itami.lg.jp/", resolver, detail_cache),
-        SmartCalendar(City("三田市", HYOGO), "https://www.city.sanda.lg.jp/", resolver, detail_cache),
-        SmartCalendar(City("池田市", OSAKA), "https://www.city.ikeda.osaka.jp/", resolver, detail_cache),
-        SmartCalendar(City("猪名川町", HYOGO), "https://www.town.inagawa.lg.jp/", resolver, detail_cache),
-        ListCalendar(City("西宮市", HYOGO), "https://www.nishi.or.jp/", resolver, list_cache),
-        ListCalendar(City("豊中市", OSAKA), "https://www.city.toyonaka.osaka.jp/", resolver, list_cache),
-        Kobe(resolver, kobe_cache),
-    ]
-    return sources, [kobe_cache, list_cache, detail_cache]
-
 FEED_VERSION = 1
 GEOCODE_SOURCES = [
     {"name": "国土地理院 住所検索API", "url": "https://msearch.gsi.go.jp/address-search/AddressSearch",
@@ -63,6 +36,58 @@ GEOCODE_SOURCES = [
     {"name": "OpenStreetMap", "url": "https://www.openstreetmap.org/copyright",
      "license": "© OpenStreetMap contributors (ODbL)", "note": "施設名から位置を求める際に使用しています。"},
 ]
+REGISTRY_DIR = HERE / "registry"
+# 毎日の実行を地方ごとに並列化する単位（GitHub Actions の matrix）
+REGIONS = {
+    "hokkaido_tohoku": ["北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県"],
+    "kanto": ["茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県"],
+    "chubu": ["新潟県", "富山県", "石川県", "福井県", "山梨県", "長野県", "岐阜県", "静岡県", "愛知県"],
+    "kinki": ["三重県", "滋賀県", "京都府", "大阪府", "兵庫県", "奈良県", "和歌山県"],
+    "chugoku_shikoku": ["鳥取県", "島根県", "岡山県", "広島県", "山口県", "徳島県", "香川県", "愛媛県", "高知県"],
+    "kyushu_okinawa": ["福岡県", "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県"],
+}
+# 宝塚市の会場コード → venues.json の既知施設
+TAKARAZUKA_PLACES = {
+    "1": "宝塚市役所", "3": "フレミラ宝塚", "5": "スポーツセンター", "6": "ベガ・ホール",
+    "7": "ソリオホール", "8": "宝塚文化創造館", "9": "中央公民館", "10": "男女共同参画センター",
+}
+
+
+def read_detected(directory: Path) -> list[dict]:
+    """detect_cms.py が作った登録表（registry/detected_*.csv）をすべて読む"""
+    rows: list[dict] = []
+    for path in sorted(directory.glob("detected_*.csv")):
+        with path.open() as f:
+            rows += list(csv.DictReader(line for line in f if not line.startswith("#")))
+    return rows
+
+
+def build_sources(resolver: VenueResolver, cache_dir: Path, registry_dir: Path = REGISTRY_DIR,
+                  prefs: list[str] | None = None) -> tuple[list, list[PageCache]]:
+    """登録表から取得元を作る。個別の取得処理がある市町村（神戸市）はそちらを使う。prefs で都道府県を絞る"""
+    kobe_cache = PageCache(cache_dir / "kobe_pages.json")
+    list_cache = PageCache(cache_dir / "list_calendar_pages.json")
+    detail_cache = PageCache(cache_dir / "detail_pages.json")
+    sources: list = [Kobe(resolver, kobe_cache), TakarazukaKominkan(resolver)] if not prefs or "兵庫県" in prefs else []
+    custom = {"神戸市"}
+
+    for row in read_detected(registry_dir):
+        if prefs and row["pref"] not in prefs:
+            continue
+        city = City(row["name"], row["pref"])
+        base, method = row["base_url"], row["method"]
+        if row["name"] in custom or method in ("", "unknown"):
+            continue
+        if method == "event_js":
+            takarazuka = row["name"] == "宝塚市"
+            sources.append(CityEventJs(CityEventJsConfig(
+                city, base, row["feed"], place_defaults=TAKARAZUKA_PLACES if takarazuka else {},
+                skip_outer=takarazuka), resolver, detail_cache))
+        elif method == "calendar_json":
+            sources.append(SmartCalendar(city, base, resolver, detail_cache))
+        elif method == "list_calendar":
+            sources.append(ListCalendar(city, base, resolver, list_cache))
+    return sources, [kobe_cache, list_cache, detail_cache]
 
 
 def validate(events: list[dict], now: dt.datetime, days_ahead: int) -> list[dict]:
@@ -95,17 +120,94 @@ def dedupe(events: list[dict]) -> list[dict]:
     return list(best.values())
 
 
+TILE_SIZE = 0.25  # 度（緯度方向で約28km）
+
+
+def tile_key(latitude: float, longitude: float, size: float = TILE_SIZE) -> str:
+    return f"{math.floor(latitude / size)}_{math.floor(longitude / size)}"
+
+
+def write_tiles(events: list[dict], sources: list[dict], generated_at: str, directory: Path) -> int:
+    """地域ごとのファイル（feed/tiles/*.json）と一覧（feed/index.json）を書き出す。
+
+    アプリは index.json を見て、検索範囲に重なり、かつ hash が変わったファイルだけを取りに行く。
+    """
+    tiles: dict[str, list[dict]] = {}
+    for event in events:
+        tiles.setdefault(tile_key(event["latitude"], event["longitude"]), []).append(event)
+    tile_dir = directory / "tiles"
+    tile_dir.mkdir(parents=True, exist_ok=True)
+    for old in tile_dir.glob("*.json"):
+        if old.stem not in tiles:
+            old.unlink()
+    index = {}
+    for key, items in sorted(tiles.items()):
+        body = json.dumps(items, ensure_ascii=False, separators=(",", ":"))
+        (tile_dir / f"{key}.json").write_text(body)
+        index[key] = {"count": len(items), "hash": hashlib.sha1(body.encode()).hexdigest()[:12]}
+    (directory / "index.json").write_text(json.dumps({
+        "version": FEED_VERSION, "generatedAt": generated_at, "tileSize": TILE_SIZE,
+        "sources": sources, "tiles": index,
+    }, ensure_ascii=False, indent=1) + "\n")
+    return len(index)
+
+
+def seed_caches(cache_dir: Path, geocode_cache: Path) -> None:
+    """Actions のキャッシュがまだ無いときは、リポジトリに入っているキャッシュから始める"""
+    import shutil
+    if not geocode_cache.exists() and geocode_cache != HERE / "geocode_cache.json":
+        geocode_cache.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(HERE / "geocode_cache.json", geocode_cache)
+    if cache_dir != HERE / "cache":
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        for path in (HERE / "cache").glob("*.json"):
+            if not (cache_dir / path.name).exists():
+                shutil.copy(path, cache_dir / path.name)
+
+
+def merge_parts(parts: list[Path], output: Path, tiles: str | None, now: dt.datetime, days_ahead: int) -> int:
+    """地方ごとの出力（events.json と同じ形式）を1つにまとめ、地域ごとのファイルも書き出す"""
+    events: list[dict] = []
+    sources: list[dict] = []
+    for part in parts:
+        if not part.exists():
+            print(f"  ! {part} がありません（その地方の収集が失敗した可能性）")
+            continue
+        feed = json.loads(part.read_text())
+        events += feed["events"]
+        sources += [s for s in feed["sources"] if s not in sources]
+    events = sorted(dedupe(validate(events, now, days_ahead)), key=lambda e: (e["startAt"], e["title"]))
+    if not events:
+        print("イベントが0件のため出力しません")
+        return 1
+    feed = {"version": FEED_VERSION, "generatedAt": iso(now), "sources": sources, "events": events}
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(json.dumps(feed, ensure_ascii=False, separators=(",", ":")) + "\n")
+    print(f"まとめ: {len(events)}件 → {output}")
+    if tiles:
+        print(f"地域ごとのファイル: {write_tiles(events, sources, feed['generatedAt'], Path(tiles))}個 → {tiles}")
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", default=str(HERE.parent / "docs" / "events.json"))
     parser.add_argument("--days-ahead", type=int, default=60)
+    parser.add_argument("--tiles", help="地域ごとのファイルの出力先（例: docs/feed）")
+    parser.add_argument("--region", choices=sorted(REGIONS), help="この地方の都道府県だけ収集する")
+    parser.add_argument("--cache-dir", type=Path, default=HERE / "cache")
+    parser.add_argument("--geocode-cache", type=Path, default=HERE / "geocode_cache.json")
+    parser.add_argument("--merge", nargs="+", type=Path, help="地方ごとの出力をまとめるだけ（収集しない）")
     parser.add_argument("--only", help="一部のソースだけ実行（名前の一部をカンマ区切り。例: kobe,川西市）")
     args = parser.parse_args()
 
     now = dt.datetime.now(JST).replace(microsecond=0)
-    geocoder = Geocoder(HERE / "geocode_cache.json")
+    if args.merge:
+        return merge_parts(args.merge, Path(args.output), args.tiles, now, args.days_ahead)
+    seed_caches(args.cache_dir, args.geocode_cache)
+    geocoder = Geocoder(args.geocode_cache)
     resolver = VenueResolver(HERE / "venues.json", geocoder)
-    sources, caches = build_sources(resolver, HERE / "cache")
+    sources, caches = build_sources(resolver, args.cache_dir, prefs=REGIONS[args.region] if args.region else None)
     if args.only:
         sources = [source for source in sources if any(key in source.name for key in args.only.split(","))]
 
@@ -134,10 +236,14 @@ def main() -> int:
     output.parent.mkdir(parents=True, exist_ok=True)
     feed = {"version": FEED_VERSION, "generatedAt": iso(now), "sources": used_sources + GEOCODE_SOURCES, "events": events}
     output.write_text(json.dumps(feed, ensure_ascii=False, indent=1) + "\n")
+    if args.tiles:
+        count = write_tiles(events, feed["sources"], feed["generatedAt"], Path(args.tiles))
+        print(f"地域ごとのファイル: {count}個 → {args.tiles}")
 
     approximate = sum(1 for e in events if e["confidence"] < 0.7)
     print(f"出力: {output} {len(events)}件（位置がおおよそ: {approximate}件）")
-    print(f"会場の解決: {resolver.stats} / 位置検索の新規問い合わせ: {geocoder.live_requests}回 / "
+    print(f"会場の解決: {resolver.stats} / 位置検索の新規問い合わせ: {geocoder.live_requests}回"
+          f"（上限で翌日以降に回した分: {geocoder.skipped}回） / "
           f"詳細ページの取得: {sum(c.fetched for c in caches)}件")
     by_area: dict[str, int] = {}
     for event in events:

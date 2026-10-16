@@ -45,10 +45,24 @@ class Venue:
 
 
 class Geocoder:
+    # 1回の実行で外部に問い合わせる上限。超えた分はキャッシュせず、翌日以降の実行で少しずつ埋める
+    # （特に OpenStreetMap Nominatim は大量利用が禁止されているため控えめにする）
+    LIMITS = {"gsi": 2000, "osm": 500}
+
     def __init__(self, cache_path: Path):
         self.cache_path = cache_path
         self.cache: dict[str, dict | None] = json.loads(cache_path.read_text()) if cache_path.exists() else {}
         self.live_requests = 0
+        self.used = {"gsi": 0, "osm": 0}
+        self.skipped = 0
+
+    def _can_ask(self, provider: str) -> bool:
+        if self.used[provider] >= self.LIMITS[provider]:
+            self.skipped += 1
+            return False
+        self.used[provider] += 1
+        self.live_requests += 1
+        return True
 
     def save(self) -> None:
         self.cache_path.write_text(json.dumps(self.cache, ensure_ascii=False, indent=1, sort_keys=True) + "\n")
@@ -57,7 +71,8 @@ class Geocoder:
         """国土地理院。結果が同じ市内で、市名だけの大ざっぱな一致でないときに採用する"""
         key = f"gsi:{address}"
         if key not in self.cache:
-            self.live_requests += 1
+            if not self._can_ask("gsi"):
+                return None
             try:
                 results = fetch_json(GSI_URL + urllib.parse.quote(address))
             except Exception as error:  # 通信失敗はキャッシュしない
@@ -84,7 +99,8 @@ class Geocoder:
         """Nominatim。viewbox（西,北,東,南）の範囲内だけを対象にする"""
         key = f"osm:{name}@{','.join(f'{v:.2f}' for v in viewbox)}"
         if key not in self.cache:
-            self.live_requests += 1
+            if not self._can_ask("osm"):
+                return None
             query = urllib.parse.urlencode({
                 "q": name, "format": "jsonv2", "limit": 1, "countrycodes": "jp",
                 "viewbox": ",".join(map(str, viewbox)), "bounded": 1, "accept-language": "ja",
@@ -160,7 +176,7 @@ class VenueResolver:
 
         names = [n for n in dict.fromkeys((facility, label)) if n and len(n) >= 3]
         for name in names:
-            queries = [name] if name.startswith(city.name) else [name, f"{city.name}{name}", f"{city.name}立{name}"]
+            queries = [name] if name.startswith(city.name) else [name, f"{city.name}{name}"]
             for query in queries:
                 hit = self.geocoder.place(query, self.viewbox(city))
                 if hit and self._osm_name_matches(name, hit):

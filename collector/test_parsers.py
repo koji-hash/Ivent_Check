@@ -87,6 +87,45 @@ class ListCalendarTests(unittest.TestCase):
         self.assertEqual(labeled_value(lines, "場\\s*所"), "市民会館 大ホール")
 
 
+class RegistryTests(unittest.TestCase):
+    def test_sources_from_registry(self):
+        import tempfile
+        import collect
+        from geocode import Geocoder, VenueResolver
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            (tmp / "detected_test.csv").write_text(
+                "# test\ncode,pref,name,population,method,base_url,feed,note\n"
+                "1,兵庫県,宝塚市,1,event_js,https://a.example/,city_event.js,\n"
+                "2,兵庫県,伊丹市,1,calendar_json,https://b.example/,calendar.json,\n"
+                "3,大阪府,豊中市,1,list_calendar,https://c.example/,event/calendar/list_calendar.html,\n"
+                "4,兵庫県,神戸市,1,list_calendar,https://d.example/,x,\n"
+                "5,兵庫県,どこか町,1,unknown,https://e.example/,,\n")
+            resolver = VenueResolver(Path(collect.HERE) / "venues.json", Geocoder(tmp / "g.json"))
+            sources, _ = collect.build_sources(resolver, tmp, registry_dir=tmp)
+            names = [source.name for source in sources]
+            self.assertEqual(names, ["kobe", "takarazuka_kominkan", "event_js:宝塚市",
+                                     "calendar_json:伊丹市", "list_calendar:豊中市"])
+            self.assertTrue(sources[2].config.skip_outer)
+
+
+class TileTests(unittest.TestCase):
+    def test_write_tiles(self):
+        import json
+        import tempfile
+        import collect
+        events = [{"latitude": 34.81, "longitude": 135.34, "title": "a"},
+                  {"latitude": 34.82, "longitude": 135.36, "title": "b"},
+                  {"latitude": 35.68, "longitude": 139.76, "title": "c"}]
+        with tempfile.TemporaryDirectory() as tmp:
+            count = collect.write_tiles(events, [], "2026-10-16T05:00:00+09:00", Path(tmp))
+            index = json.loads((Path(tmp) / "index.json").read_text())
+            self.assertEqual(count, 2)
+            key = collect.tile_key(34.81, 135.34)
+            self.assertEqual(index["tiles"][key]["count"], 2)
+            self.assertEqual(len(json.loads((Path(tmp) / "tiles" / f"{key}.json").read_text())), 2)
+
+
 class MiscTests(unittest.TestCase):
     def test_outing_filter(self):
         self.assertFalse(is_outing("第3回 景観審議会"))

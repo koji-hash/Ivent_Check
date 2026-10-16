@@ -69,10 +69,10 @@ enum EventSortOrder: String, CaseIterable, Identifiable {
 /// S-04 フィルタ条件
 struct SearchFilter: Equatable {
     /// F-EVT-01 指定半径
-    static let radiusOptions: [Double] = [1, 3, 5, 10, 20]
+    static let radiusOptions: [Double] = [1, 3, 5, 10, 20, 30, 50]
 
     var period: DatePeriod = .week
-    var radiusKm: Double = 5
+    var radiusKm: Double = 10
     /// 空の場合はすべてのカテゴリ
     var categories: Set<EventCategory> = []
     var freeOnly = false

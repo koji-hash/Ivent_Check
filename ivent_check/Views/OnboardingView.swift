@@ -11,7 +11,7 @@ struct OnboardingView: View {
         TabView(selection: $step) {
             page(symbol: "party.popper.fill", color: .pink,
                  title: "近くのイベントに、\n気づける。",
-                 message: "現在地のまわりで今日・近日に開催される祭りや催し、地域イベントを自動で見つけてお知らせします。") {
+                 message: "現在地のまわりで今日・近日に開催される祭りや催し、地域イベントを自動で見つけてお知らせします。\n\n対応エリア：宝塚市・川西市・伊丹市・尼崎市・西宮市・三田市・猪名川町・神戸市・豊中市・吹田市・池田市（順次拡大予定）") {
                 Button("はじめる") { withAnimation { step = 1 } }
                     .buttonStyle(.borderedProminent)
             }

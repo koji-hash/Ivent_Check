@@ -44,6 +44,9 @@ struct SettingsView: View {
                 }
 
                 Section("このアプリについて") {
+                    if let generated = model.feedGeneratedAt {
+                        LabeledContent("掲載情報の更新", value: EventFormatters.dateTime.string(from: generated))
+                    }
                     NavigationLink("データ出典一覧") { DataSourcesView() }
                     NavigationLink("プライバシーポリシー") { PrivacyPolicyView() }
                     NavigationLink("免責事項") { DisclaimerView() }

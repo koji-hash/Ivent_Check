@@ -7,8 +7,11 @@ from __future__ import annotations
 import datetime as dt
 import re
 
-from common import (build_event, fetch_json, find_time_range, html_to_text, keyword_categories,
-                    merge_categories, nfkc)
+from common import (build_event, clean_title, fetch_json, find_time_range, html_to_text, is_outing,
+                    keyword_categories, merge_categories, nfkc)
+from geocode import City
+
+CITY = City("宝塚市", "兵庫県")
 
 API = "https://www.takarazuka-kominkan.jp/wp-json/wp/v2/{type}?per_page=50&page={page}&orderby=date&order=desc&_fields=id,link,title,content,date,modified"
 SITE_URL = "https://www.takarazuka-kominkan.jp/"
@@ -93,10 +96,11 @@ class TakarazukaKominkan:
         return events
 
     def _events(self, post: dict, hall: str, now, today, last_day) -> list[dict]:
-        title = nfkc(html_to_text(post["title"]["rendered"])).strip()
+        raw_title = nfkc(html_to_text(post["title"]["rendered"])).strip()
+        title = clean_title(raw_title)
         text = html_to_text(post["content"]["rendered"])
         posted = dt.date.fromisoformat(post["date"][:10])
-        if posted < today - dt.timedelta(days=240) or any(w in title for w in ("終了しました", "中止", "募集")):
+        if posted < today - dt.timedelta(days=240) or "終了しました" in raw_title or not is_outing(title):
             return []
 
         lines = text.splitlines()
@@ -110,10 +114,10 @@ class TakarazukaKominkan:
             return []
 
         place_line = next((m.group(1) for line in lines if (m := LABEL_PLACE.match(line))), None)
-        venue = self.resolver.match_known(place_line)
+        venue = self.resolver.match_known(place_line, CITY)
         if venue is None:
             # 「料理室」など館内の部屋名だけのときは、その公民館の位置を使う
-            venue = self.resolver.known_venue(hall)
+            venue = self.resolver.known_venue(hall, CITY)
             if place_line:
                 venue.name = f"{hall} {self.resolver.short_name(place_line)}".strip()
 
@@ -129,5 +133,5 @@ class TakarazukaKominkan:
             url=post["link"], title=title, start_date=start, end_date=end, times=times, venue=venue,
             categories=categories, price=price, is_free=is_free, organizer=f"宝塚市立{hall}",
             source_name=SOURCE_NAME, source_url=SITE_URL, license=LICENSE,
-            confidence=0.85, fetched_at=now, updated_at=updated, recurrence=recurrence,
+            confidence=0.85, fetched_at=now, updated_at=updated, recurrence=recurrence, area=CITY.name,
         ) for start, end in spans]

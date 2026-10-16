@@ -157,7 +157,7 @@ struct EventDetailView: View {
             InfoRow(systemImage: "calendar", title: "日時",
                     value: [EventFormatters.schedule(for: event), event.recurrence].compactMap { $0 }.joined(separator: "\n"))
             InfoRow(systemImage: "mappin.and.ellipse", title: "会場",
-                    value: [event.venueName, event.address].compactMap { $0 }.joined(separator: "\n"))
+                    value: [event.venueName, event.address ?? event.displayArea].compactMap { $0 }.joined(separator: "\n"))
             if let distance {
                 InfoRow(systemImage: "figure.walk", title: "距離", value: "\(model.originName)から\(EventFormatters.distance(distance))")
             }

@@ -16,11 +16,15 @@ struct FilterView: View {
                     .pickerStyle(.inline)
                     .labelsHidden()
                 }
-                Section("距離") {
+                Section {
                     Picker("半径", selection: $draft.radiusKm) {
-                        ForEach(SearchFilter.radiusOptions, id: \.self) { Text("\(Int($0))km").tag($0) }
+                        ForEach(SearchFilter.radiusOptions, id: \.self) { Text("\(Int($0))").tag($0) }
                     }
                     .pickerStyle(.segmented)
+                } header: {
+                    Text("距離（km以内）").textCase(nil)
+                } footer: {
+                    Text("現在地（または指定エリア）からの距離です。対象エリア：宝塚市・川西市・伊丹市・尼崎市・西宮市・三田市・猪名川町・神戸市・豊中市・吹田市・池田市")
                 }
                 Section {
                     CategoryGrid(selection: $draft.categories)

@@ -9,6 +9,12 @@ struct EventListView: View {
         @Bindable var store = model.store
         NavigationStack {
             List {
+                if model.isFeedStale, let generated = model.feedGeneratedAt {
+                    Label("掲載情報が\(EventFormatters.shortDay.string(from: generated))から更新されていません。開催前に公式ページをご確認ください。",
+                          systemImage: "clock.badge.exclamationmark")
+                        .font(.footnote)
+                        .foregroundStyle(.orange)
+                }
                 if store.isShowingCache {
                     Label("オフライン：前回の検索結果を表示しています", systemImage: "wifi.slash")
                         .font(.footnote)
@@ -25,8 +31,8 @@ struct EventListView: View {
                         Text("\(section.title)（\(section.hits.count)件）")
                     }
                 }
-                if let updated = store.lastUpdated, !store.hits.isEmpty {
-                    Text("最終更新 \(EventFormatters.dateTime.string(from: updated))・距離は\(model.originName)から")
+                if let generated = model.feedGeneratedAt ?? store.lastUpdated, !store.hits.isEmpty {
+                    Text("掲載情報 \(EventFormatters.dateTime.string(from: generated))時点・距離は\(model.originName)から")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .listRowBackground(Color.clear)
@@ -46,7 +52,10 @@ struct EventListView: View {
                 }
             }
             .searchable(text: $store.keyword, prompt: "キーワードで絞り込み")
-            .refreshable { await model.refresh() }
+            .refreshable {
+                model.location.requestLocation()
+                await model.refresh()
+            }
             .navigationTitle("イベント")
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {

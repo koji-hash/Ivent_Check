@@ -61,6 +61,15 @@ final class AppModel {
         origin == nil && (location.isDenied || settings.useManualArea)
     }
 
+    /// 配信データの作成日時（同梱・キャッシュ・取得したもののうち使用中のもの）
+    var feedGeneratedAt: Date? { (repository as? FeedEventRepository)?.generatedAt }
+
+    /// 配信データが3日以上更新されていない
+    var isFeedStale: Bool {
+        guard let generated = feedGeneratedAt else { return false }
+        return Date.now.timeIntervalSince(generated) > 3 * 86_400
+    }
+
     func refresh(center: CLLocationCoordinate2D? = nil) async {
         guard let center = center ?? origin else { return }
         await store.search(center: center, origin: origin)

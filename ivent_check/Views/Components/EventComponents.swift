@@ -48,7 +48,8 @@ struct EventRow: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 Label {
-                    Text([event.venueName, distance.map { EventFormatters.distance($0) }].compactMap { $0 }.joined(separator: "・"))
+                    Text([event.venueName, event.displayArea, distance.map { EventFormatters.distance($0) }]
+                        .compactMap { $0 }.joined(separator: "・"))
                 } icon: {
                     Image(systemName: "mappin.and.ellipse")
                 }
@@ -82,7 +83,8 @@ struct EventCard: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
-                Text("\(hit.event.venueName)・\(EventFormatters.distance(hit.distance))")
+                Text([hit.event.venueName, hit.event.displayArea, EventFormatters.distance(hit.distance)]
+                    .compactMap { $0 }.joined(separator: "・"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)

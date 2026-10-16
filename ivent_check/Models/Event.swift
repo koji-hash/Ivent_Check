@@ -28,6 +28,8 @@ nonisolated struct Event: Codable, Identifiable, Hashable {
     var confidence: Double
     var fetchedAt: Date
     var updatedAt: Date
+    /// 開催市町村（例: 川西市）
+    var area: String? = nil
 
     enum CodingKeys: String, CodingKey {
         case id, title
@@ -36,7 +38,7 @@ nonisolated struct Event: Codable, Identifiable, Hashable {
         case startAt, endAt, isAllDay, recurrence, venueName, address, latitude, longitude
         case iconKey = "icon"
         case price, isFree, organizer, officialUrl, imageUrl, sourceName, sourceUrl, license
-        case confidence, fetchedAt, updatedAt
+        case confidence, fetchedAt, updatedAt, area
     }
 
     var coordinate: CLLocationCoordinate2D {
@@ -51,6 +53,12 @@ nonisolated struct Event: Codable, Identifiable, Hashable {
 
     /// 表示するアイコン。データに無ければカテゴリから決める
     var icon: EventIcon { iconKey.flatMap(EventIcon.init(rawValue:)) ?? EventIcon(category: primaryCategory) }
+
+    /// 会場名に市町村名が含まれていなければ表示用に返す
+    var displayArea: String? {
+        guard let area, !venueName.contains(area) else { return nil }
+        return area
+    }
 
     /// 9. LLM抽出の誤り対策：信頼度が低いものは「要確認」表示
     var needsVerification: Bool { confidence < 0.7 }

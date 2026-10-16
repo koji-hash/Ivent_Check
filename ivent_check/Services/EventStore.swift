@@ -64,7 +64,7 @@ final class EventStore {
         let keyword = keyword.trimmingCharacters(in: .whitespaces)
         let filtered = keyword.isEmpty ? hits : hits.filter { hit in
             let e = hit.event
-            return [e.title, e.summary, e.venueName, e.organizer, e.address]
+            return [e.title, e.summary, e.venueName, e.organizer, e.address, e.area, e.icon.label]
                 .compactMap { $0 }
                 .contains { $0.localizedCaseInsensitiveContains(keyword) }
         }

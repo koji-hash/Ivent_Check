@@ -6,9 +6,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from common import choose_icon, consecutive_runs, find_time_range  # noqa: E402
+from common import choose_icon, clean_title, consecutive_runs, find_time_range, is_outing  # noqa: E402
 from geocode import VenueResolver  # noqa: E402
-from sources.takarazuka_city import TakarazukaCity, parse_feed  # noqa: E402
+from sources.city_event_js import date_spans, parse_feed  # noqa: E402
+from sources.kobe import jst_date  # noqa: E402
+from sources.list_calendar import labeled_value, parse_month  # noqa: E402
 from sources.takarazuka_kominkan import LABEL_DATE, parse_dates  # noqa: E402
 
 
@@ -18,6 +20,10 @@ class TimeRangeTests(unittest.TestCase):
         self.assertEqual(find_time_range("13時半~16時"), (dt.time(13, 30), dt.time(16)))
         self.assertEqual(find_time_range("午後1時30分~3時30分"), (dt.time(13, 30), dt.time(15, 30)))
         self.assertEqual(find_time_range("１０：００～１２：００"), (dt.time(10), dt.time(12)))
+
+    def test_japanese_phrases(self):
+        self.assertEqual(find_time_range("午前10時00分から正午まで"), (dt.time(10), dt.time(12)))
+        self.assertEqual(find_time_range("午後6時00分から午後9時00分まで"), (dt.time(18), dt.time(21)))
 
     def test_ambiguous_is_rejected(self):
         self.assertIsNone(find_time_range("午前の部10:30~12:00 午後の部14:00~15:30"))
@@ -53,16 +59,54 @@ class CityFeedTests(unittest.TestCase):
         js = 'var event_data = { events: [{"eventtitle":"a","opendays":["2026/10/20","2026/10/21","2026/10/25"]}], categories: {"4":"観光"}, };'
         feed = parse_feed(js)
         self.assertEqual(feed["categories"], {"4": "観光"})
-        spans, recurrence = TakarazukaCity._date_spans(feed["events"][0])
+        spans, recurrence = date_spans(feed["events"][0])
         self.assertEqual(spans, [(dt.date(2026, 10, 20), dt.date(2026, 10, 21)), (dt.date(2026, 10, 25),) * 2])
         self.assertEqual(recurrence, "全2回")
 
     def test_weekly(self):
-        spans, recurrence = TakarazukaCity._date_spans({"opendays": ["2026/10/18"], "regularweek": ["1"]})
+        spans, recurrence = date_spans({"opendays": ["2026/10/18"], "regularweek": ["1"]})
         self.assertEqual(recurrence, "毎週日曜日")
 
 
+class ListCalendarTests(unittest.TestCase):
+    def test_nishinomiya_rows(self):
+        html = ('<td class="date" id="day3"><span class="calendar_day">3日 </span>土曜日</td> <td class="einfo"><p>'
+                '<img src="/i.png" alt="催し" /> <a href="/a/b.html">秋まつり</a></p></td></tr>')
+        self.assertEqual(parse_month(html), [(3, "催し", "/a/b.html", "秋まつり", None)])
+
+    def test_toyonaka_rows_with_place(self):
+        html = ('<td class="sat"> <span class="calendar_day">3日<a id="3" name="3"></a></span> 土曜日</td> '
+                '<td class="einfo"><p><img src="/images/cal_icon05.png" alt="スポーツ"/><a href="/x.html">ブレイキン</a>&nbsp;'
+                '<img src="/images/place.png" alt="" /><a href="https://example/p.html">グリーンスポーツセンター</a></p>'
+                '<ul><li></li></ul><p>募集期間:2026年9月3日</p></td>')
+        self.assertEqual(parse_month(html), [(3, "スポーツ", "/x.html", "ブレイキン", "グリーンスポーツセンター")])
+
+    def test_labeled_value(self):
+        lines = ["日時", "11月3日 10時~15時", "場所:市民会館 大ホール"]
+        self.assertEqual(labeled_value(lines, "日\\s*時"), "11月3日 10時~15時")
+        self.assertEqual(labeled_value(lines, "場\\s*所"), "市民会館 大ホール")
+
+
 class MiscTests(unittest.TestCase):
+    def test_outing_filter(self):
+        self.assertFalse(is_outing("第3回 景観審議会"))
+        self.assertFalse(is_outing("弁護士相談"))
+        self.assertTrue(is_outing("秋の植物観察会", ["催し"]))
+        self.assertFalse(is_outing("オンライン講座", ["オンライン"]))
+
+    def test_clean_title(self):
+        self.assertEqual(clean_title("【10/17~受付開始】ピアノを弾こう"), "ピアノを弾こう")
+        self.assertEqual(clean_title("【展覧会】川村摩那"), "【展覧会】川村摩那")
+
+    def test_kobe_date_is_japan_time(self):
+        self.assertEqual(jst_date("2026-12-15T15:00:00.000Z"), "2026-12-16")
+        self.assertEqual(jst_date("2026-12-16T00:00:00.000Z"), "2026-12-16")
+
+    def test_address_candidates(self):
+        self.assertIn("東大物町1-1", VenueResolver.address_candidates("大物公園(東大物町1－1)"))
+        self.assertIn("火打1-12-16", VenueResolver.address_candidates("川西公民館 集会室(火打1−12−16 キセラ川西プラザ福祉棟3階)[川西公民館]"))
+        self.assertFalse(any("階" in c for c in VenueResolver.address_candidates("市民会館3階")))
+
     def test_runs(self):
         d = dt.date(2026, 10, 1)
         self.assertEqual(consecutive_runs([d, d + dt.timedelta(1), d + dt.timedelta(5)]),

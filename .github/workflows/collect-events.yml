@@ -1,0 +1,42 @@
+name: collect-events
+
+on:
+  schedule:
+    - cron: "0 20 * * *" # 毎朝 5:00 (JST)
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: collect-events
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Test parsers
+        run: python -m unittest discover collector
+
+      - name: Collect events
+        run: python collector/collect.py --output docs/events.json
+
+      - name: Commit updated feed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/events.json collector/geocode_cache.json
+          if git diff --cached --quiet; then
+            echo "変更なし"
+          else
+            git commit -m "Update events.json ($(TZ=Asia/Tokyo date +%Y-%m-%d))"
+            git push
+          fi
